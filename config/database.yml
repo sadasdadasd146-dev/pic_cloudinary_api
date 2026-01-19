@@ -7,14 +7,15 @@ default: &default
 development:
   <<: *default
 
-
 test:
   <<: *default
 
-
 production:
   primary:
-    url: <%= ENV["DATABASE_URL"] %>
+    <<: *default
 
   cable:
-    url: <%= ENV["DATABASE_URL"] %>
+    <<: *default
+
+  queue:
+    <<: *default
