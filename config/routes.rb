@@ -1,30 +1,23 @@
 Rails.application.routes.draw do
-  resources :media
-  resources :users
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
-  get "up" => "rails/health#show", as: :rails_health_check
-
+  # API Version 1
   namespace :api do
-    post "media/bulk_create", to: "media#bulk_create"
-    post "media/bulk_create2", to: "media#bulk_create2"
+    namespace :v1 do
+      # Admin endpoints
+      namespace :admin do
+        get 'stats', to: 'stats#index'
+        get 'audit_logs', to: 'audit_logs#index'
+      end
 
+      # Creators endpoints
+      resources :creators, only: [:index, :show, :update] do
+        get 'media', on: :member
+      end
 
-    get "users/:username/media", to: "media#by_user"
-    get "users/top", to: "users#top"
+      # Media endpoints
+      resources :media, only: [:index, :create, :destroy]
 
-
-
-    delete "users/:username/media/bulk_delete", to: "media#bulk_delete"
-
-
-
-
+      # Thumbnail proxy
+      get 'resize', to: 'resize#show'
+    end
   end
-
-
-
-
 end

@@ -44,7 +44,11 @@ gem "image_processing", "~> 1.2"
 
 gem 'dotenv-rails'
 
+# สำหรับปรับขนาดภาพ
+gem 'mini_magick'
 
+# สำหรับ pagination (ถ้าต้องการ)
+gem 'kaminari'
 
 
 
@@ -62,3 +66,5 @@ group :development, :test do
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
 end
+gem 'mini_magick'
+gem 'faker'

@@ -10,14 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_19_034858) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_27_064730) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   create_table "media", force: :cascade do |t|
+    t.string "author_avatar"
+    t.string "author_name"
     t.datetime "created_at", null: false
     t.string "media_type"
+    t.string "tags", default: [], array: true
+    t.string "title"
     t.datetime "updated_at", null: false
+    t.datetime "upload_date"
     t.text "url"
     t.bigint "user_id", null: false
     t.index ["user_id", "media_type", "url"], name: "index_media_on_user_id_and_media_type_and_url", unique: true
@@ -25,7 +30,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_19_034858) do
   end
 
   create_table "users", force: :cascade do |t|
+    t.string "avatar"
+    t.text "bio"
     t.datetime "created_at", null: false
+    t.boolean "is_verified", default: false
+    t.string "name"
+    t.string "previews", default: [], array: true
+    t.string "role", default: "creator"
     t.datetime "updated_at", null: false
     t.string "username"
   end
