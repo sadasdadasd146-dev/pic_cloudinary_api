@@ -41,6 +41,7 @@ gem "image_processing", "~> 1.2"
 
 
 
+gem "rack-cors"
 
 gem 'dotenv-rails'
 
@@ -49,6 +50,17 @@ gem 'mini_magick'
 
 # สำหรับ pagination (ถ้าต้องการ)
 gem 'kaminari'
+
+
+
+
+
+
+
+
+
+
+
 
 
 
