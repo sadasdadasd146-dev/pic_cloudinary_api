@@ -18,6 +18,7 @@ Rails.application.routes.draw do
 
       # Thumbnail proxy
       get 'resize', to: 'resize#show'
+      post 'import/media', to: 'import#media'
     end
   end
 end
