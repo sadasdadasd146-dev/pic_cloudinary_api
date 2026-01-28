@@ -35,15 +35,16 @@ gem "image_processing", "~> 1.2"
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 # gem "rack-cors"
 
+# API
+gem 'rack-cors'
+gem 'active_model_serializers', '~> 0.10.0'
 
+# Cloudinary
+gem 'cloudinary'
 
-
-
-
-
-gem "rack-cors"
-
-gem 'dotenv-rails'
+# Authentication
+gem 'jwt'
+gem 'bcrypt'
 
 # สำหรับปรับขนาดภาพ
 gem 'mini_magick'
@@ -51,21 +52,7 @@ gem 'mini_magick'
 # สำหรับ pagination (ถ้าต้องการ)
 gem 'kaminari'
 
-
-gem 'jwt'
-gem "bcrypt", "~> 3.1.7"
-
-
-
-
-
-
-
-
-
-
-
-
+gem 'dotenv-rails', groups: [:development, :test]
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

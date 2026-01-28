@@ -14,6 +14,13 @@ class ApplicationController < ActionController::API
   rescue
     render json: { error: 'Unauthorized' }, status: :unauthorized
   end
+
+  # Response format
+  before_action :set_default_format
+
+  def set_default_format
+    request.format = :json
+  end
 end
 
 

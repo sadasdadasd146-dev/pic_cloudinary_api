@@ -1,26 +1,40 @@
-module Api::V1
-  module Admin
-    class StatsController < ::Api::V1::BaseController
-      def index
-        top_contributors = User.joins(:assets)
-          .select("users.id, users.name, users.avatar, COUNT(media.id) as total")  # เปลี่ยนจาก assets.id เป็น media.id
-          .group("users.id, users.name, users.avatar")
-          .order("total DESC")
-          .limit(10)
-          .map do |user|
-            {
-              creatorId: user.id.to_s,
-              name: user.name || user.username,
-              avatar: user.avatar,
-              total: user.total.to_i
-            }
-          end
+module Api
+  module V1
+    module Admin
+      class StatsController < ApplicationController
+        before_action :authorize_admin!
 
-        render json: {
-          totalAssets: Asset.count,
-          totalUsers: User.count,
-          topContributors: top_contributors
-        }
+        def index
+          stats = {
+            total_creators: Creator.count,
+            total_assets: Asset.count,
+            total_users: User.count,
+            total_audit_logs: AuditLog.count,
+            assets_per_creator: Creator.includes(:assets).map { |c| { creator: c.name, count: c.assets.count } }
+          }
+
+          render json: {
+            success: true,
+            data: stats
+          }
+        end
+
+        private
+
+        def authorize_admin!
+          token = request.headers['Authorization']&.split(' ')&.last
+          if token.blank?
+            return render json: { success: false, message: 'Token required' }, status: :unauthorized
+          end
+          
+          begin
+            decoded = JWT.decode(token, Rails.application.secret_key_base)[0]
+            current_user = User.find_by(id: decoded['user_id'])
+            render json: { success: false, message: 'Unauthorized' }, status: :unauthorized unless current_user&.admin?
+          rescue JWT::DecodeError
+            render json: { success: false, message: 'Invalid token' }, status: :unauthorized
+          end
+        end
       end
     end
   end
