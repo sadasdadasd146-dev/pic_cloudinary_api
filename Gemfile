@@ -52,6 +52,8 @@ gem 'mini_magick'
 gem 'kaminari'
 
 
+gem 'jwt'
+gem "bcrypt", "~> 3.1.7"
 
 
 

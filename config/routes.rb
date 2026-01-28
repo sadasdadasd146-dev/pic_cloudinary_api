@@ -1,7 +1,10 @@
 Rails.application.routes.draw do
-  # API Version 1
   namespace :api do
     namespace :v1 do
+
+      # Auth
+      post 'login', to: 'auth#login'
+
       # Admin endpoints
       namespace :admin do
         get 'stats', to: 'stats#index'
