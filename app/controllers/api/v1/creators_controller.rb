@@ -24,14 +24,16 @@ module Api::V1
     end
 
     def media
-    user = ::User.find(params[:id])
-    media_items = user.assets  # เปลี่ยนจาก user.media เป็น user.assets
-    media_items = media_items.where(media_type: params[:type]) if params[:type].in?(%w[image video])
+      user = ::User.find(params[:id])
 
-    render json: media_items.map { |m| serialize_media(m) }
+      assets = user.assets
+      assets = assets.where(media_type: params[:media_type]) if params[:media_type].in?(%w[image video])
+
+      render json: assets.map { |a| serialize_asset(a) }
     rescue ActiveRecord::RecordNotFound
-    render json: { error: 'Creator not found' }, status: :not_found
+      render json: { error: "Creator not found" }, status: :not_found
     end
+
 
     def update
       user = ::User.find(params[:id])  # ใช้ ::User
@@ -44,6 +46,7 @@ module Api::V1
     end
 
     private
+
     def serialize_creator(user)
       {
         id: user.id.to_s,
@@ -55,6 +58,22 @@ module Api::V1
         isVerified: user.is_verified
       }
     end
+
+    def serialize_asset(asset)
+      {
+        id: asset.id.to_s,
+        title: asset.title,
+        authorId: asset.user_id.to_s,
+        author: asset.author_name || asset.user&.name || asset.user&.username,
+        authorAvatar: asset.author_avatar || asset.user&.avatar,
+        url: asset.url,
+        type: asset.media_type,
+        uploadDate: (asset.upload_date || asset.created_at).iso8601,
+        tags: asset.tags || []
+      }
+    end
+
+
 
     def serialize_media(media)
       {

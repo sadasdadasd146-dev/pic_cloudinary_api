@@ -10,11 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_28_081309) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_28_095811) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
-  create_table "media", force: :cascade do |t|
+  create_table "assets", force: :cascade do |t|
     t.string "author_avatar"
     t.string "author_name"
     t.datetime "created_at", null: false
@@ -25,8 +25,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_28_081309) do
     t.datetime "upload_date"
     t.text "url"
     t.bigint "user_id", null: false
-    t.index ["user_id", "media_type", "url"], name: "index_media_on_user_id_and_media_type_and_url", unique: true
-    t.index ["user_id", "media_type"], name: "index_media_on_user_id_and_media_type"
+    t.index ["user_id", "url", "media_type"], name: "index_assets_unique_per_user_and_type", unique: true
+    t.index ["user_id"], name: "index_assets_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -42,5 +42,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_28_081309) do
     t.string "username"
   end
 
-  add_foreign_key "media", "users"
+  add_foreign_key "assets", "users"
 end

@@ -1,135 +1,169 @@
 # app/services/media_importer.rb
+require 'securerandom'
+require 'uri'
+
 class MediaImporter
+  # =========================
+  # Main import
+  # =========================
   def self.import_from_json(json_data)
-    data = JSON.parse(json_data) if json_data.is_a?(String)
-    data = json_data if json_data.is_a?(Array)
-    
+    data =
+      case json_data
+      when String
+        JSON.parse(json_data)
+      when Array
+        json_data
+      else
+        []
+      end
+
     results = {
       total: data.size,
       imported: 0,
       users_created: 0,
-      media_created: 0,
+      assets_created: 0,
       errors: []
     }
-    
+
     data.each do |item|
-      begin
-        import_item(item)
-        results[:imported] += 1
-        results[:users_created] += 1 if @user_created
-        results[:media_created] += @media_count
-      rescue => e
-        results[:errors] << {
-          user: item['user'],
-          error: e.message
-        }
+      ActiveRecord::Base.transaction do
+        user_created, asset_count = import_item(item)
+
+        results[:imported] += 1 if asset_count.positive?
+        results[:users_created] += 1 if user_created
+        results[:assets_created] += asset_count
       end
+    rescue => e
+      results[:errors] << {
+        user: item['user'],
+        error: e.message
+      }
     end
-    
+
     results
   end
-  
-  private
-  
+
+  # =========================
+  # Import 1 item
+  # =========================
   def self.import_item(item)
-    # 1. ค้นหาหรือสร้างผู้ใช้
-    user = find_or_create_user(item['user'])
-    
-    # 2. นำเข้ารูปภาพ
-    import_media(user, item['images'], 'image')
-    
-    # 3. นำเข้าวิดีโอ
-    import_media(user, item['videos'], 'video')
+    user, user_created = find_or_create_user(item['user'])
+
+    asset_count = 0
+    asset_count += import_assets(user, item['images'], 'image')
+    asset_count += import_assets(user, item['videos'], 'video')
+
+    [user_created, asset_count]
   end
-  
+
+  # =========================
+  # User
+  # =========================
   def self.find_or_create_user(username)
-    # ลบช่องว่างที่ไม่จำเป็น
+    raise 'Username is missing' if username.blank?
+
     username = username.strip
-    
-    # ค้นหาผู้ใช้ที่มีอยู่แล้ว
     user = User.find_by(username: username)
-    
-    if user
-      @user_created = false
-      return user
-    end
-    
-    # สร้างผู้ใช้ใหม่
+    return [user, false] if user
+
+    password = SecureRandom.hex(16)
+
     user = User.create!(
       username: username,
       name: username,
       role: 'creator',
       avatar: "https://i.pravatar.cc/150?u=#{username.parameterize}",
-      bio: "User imported from Discord",
+      bio: 'User imported from Discord',
       is_verified: false,
-      previews: []
+      previews: [],
+      password: password,
+      password_confirmation: password
     )
-    
-    @user_created = true
-    user
+
+    [user, true]
   end
-  
-  def self.import_media(user, urls, media_type)
-    @media_count = 0
-    
+
+  # =========================
+  # Assets
+  # =========================
+  def self.import_assets(user, urls, media_type)
+    return 0 unless urls.is_a?(Array)
+
+    created = 0
+
     urls.each do |url|
-      # ทำความสะอาด URL (ลบช่องว่างและพารามิเตอร์ที่ไม่จำเป็น)
-      clean_url = sanitize_url(url)
-      next if clean_url.blank?
-      
-      # ตรวจสอบว่ามีอยู่แล้วหรือไม่ (ป้องกันซ้ำ)
-      next if Asset.exists?(url: clean_url, user_id: user.id, media_type: media_type)
-      
-      # สร้างสื่อใหม่
-      Asset.create!(
-        user: user,
-        media_type: media_type,
-        url: clean_url,
-        title: generate_title(user.name, media_type),
-        tags: generate_tags(media_type),
-        upload_date: Time.current,
-        author_name: user.name,
-        author_avatar: user.avatar
-      )
-      
-      @media_count += 1
+      begin
+        clean_url = sanitize_url(url)
+        next if clean_url.blank?
+
+        asset = Asset.find_or_create_by!(
+          user: user,
+          url: clean_url,
+          media_type: media_type
+        ) do |a|
+          a.title          = generate_title(user.name, media_type, clean_url)
+          a.tags           = generate_tags(media_type)
+          a.upload_date    = Time.current
+          a.author_name    = user.name
+          a.author_avatar  = user.avatar
+        end
+
+        created += 1 if asset.saved_change_to_id?
+
+      rescue ActiveRecord::RecordNotUnique
+        next
+      end
     end
+
+    created
   end
-  
+
+  # =========================
+  # Utils
+  # =========================
+
+  # ลบ cloudinary transformation แต่คง v123 ไว้
   def self.sanitize_url(url)
-    # ลบช่องว่างที่ปลาย
+    return nil if url.blank?
+
     url = url.strip
-    
-    # ลบพารามิเตอร์ที่ไม่จำเป็นจาก Discord URL
-    # เช่น &ex=... &is=... &hm=... &=&format=webp&width=...&height=...
-    url = url.gsub(/&ex=[^&]*/, '')
-    url = url.gsub(/&is=[^&]*/, '')
-    url = url.gsub(/&hm=[^&]*/, '')
-    url = url.gsub(/&=&format=[^&]*/, '')
-    url = url.gsub(/&width=[^&]*/, '')
-    url = url.gsub(/&height=[^&]*/, '')
-    
-    # ลบเครื่องหมาย & ที่ซ้ำหรืออยู่ท้าย
-    url = url.gsub(/&+/, '&').gsub(/&$/, '')
-    
-    url
+    url.sub(
+      %r{(/image/upload/)([^/]+/)(v\d+/)},
+      '\1\3'
+    )
   end
-  
-  def self.generate_title(username, media_type)
-    type_name = media_type == 'image' ? 'รูปภาพ' : 'วิดีโอ'
-    "#{type_name} โดย #{username} - #{Time.current.strftime('%Y-%m-%d %H:%M')}"
+
+  # -------------------------
+  # Generate title
+  # -------------------------
+  def self.generate_title(username, media_type, url = nil)
+    base =
+      if url.present?
+        File.basename(URI.parse(url).path).split('.').first
+      else
+        SecureRandom.hex(4)
+      end
+
+    "#{username} - #{media_type} - #{base}"
+  rescue
+    "#{username} - #{media_type}"
   end
-  
+
+  # -------------------------
+  # Generate tags
+  # -------------------------
   def self.generate_tags(media_type)
-    if media_type == 'image'
-      ['photo', 'discord', 'imported']
+    base_tags = %w[imported discord cloudinary]
+
+    case media_type
+    when 'image'
+      base_tags + %w[photo image]
+    when 'video'
+      base_tags + %w[video clip]
     else
-      ['video', 'discord', 'imported']
+      base_tags
     end
   end
 end
-
-
-
 
 

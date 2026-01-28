@@ -1,11 +1,12 @@
+# app/models/asset.rb
 class Asset < ApplicationRecord
-  self.table_name = "media"
-  
-  belongs_to :user, foreign_key: :user_id
-
-  # ลบบรรทัดนี้ออกชั่วคราวเพื่อทดสอบ
-  # enum media_type: { image: "image", video: "video" }
+  belongs_to :user
 
   validates :url, presence: true
-  validates :url, uniqueness: { scope: [:user_id, :media_type] }
+  validates :media_type, presence: true
+
+  validates :url, uniqueness: {
+    scope: [:user_id, :media_type],
+    message: 'already exists for this user and media type'
+  }
 end

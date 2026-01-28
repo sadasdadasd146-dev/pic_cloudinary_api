@@ -1,11 +1,9 @@
-ActiveRecord::Schema[7.1].define(version: 1) do
-  create_table "solid_cable_messages", force: :cascade do |t|
-    t.binary "channel", limit: 1024, null: false
-    t.binary "payload", limit: 536870912, null: false
-    t.datetime "created_at", null: false
-    t.integer "channel_hash", limit: 8, null: false
-    t.index ["channel"], name: "index_solid_cable_messages_on_channel"
-    t.index ["channel_hash"], name: "index_solid_cable_messages_on_channel_hash"
-    t.index ["created_at"], name: "index_solid_cable_messages_on_created_at"
+# db/migrate/20260128095811_add_unique_index_to_assets.rb
+class AddUniqueIndexToAssets < ActiveRecord::Migration[8.1]
+  def change
+    add_index :assets,
+              [:user_id, :url, :media_type],
+              unique: true,
+              name: 'index_assets_unique_per_user_and_type'
   end
 end
