@@ -47,8 +47,10 @@ Rails.application.configure do
   # Replace the default in-process and non-durable queuing backend for Active Job.
   config.active_job.queue_adapter = :solid_queue
 
-  config.action_cable.enabled = false
-  
+
+  # config/environments/production.rb
+  config.action_cable.mount_path = nil
+
 
 
   # Ignore bad email addresses and do not raise email delivery errors.
