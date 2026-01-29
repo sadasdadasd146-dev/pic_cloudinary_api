@@ -2,7 +2,8 @@
 module Api
   module V1
     class AssetsController < ApplicationController
-      before_action :set_asset, only: [:destroy]
+      include Authenticable
+      before_action :authenticate_request
 
       def index
         assets = Asset.all

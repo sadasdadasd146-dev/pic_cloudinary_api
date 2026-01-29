@@ -1,6 +1,7 @@
 module Api
   module V1
     class CreatorsController < ApplicationController
+      include Authenticable
       before_action :set_creator, only: [:show, :update, :assets]
 
       def index

@@ -1,6 +1,8 @@
 module Api
   module V1
     class ResizeController < ApplicationController
+      include Authenticable
+
       def show
         url = params[:url]
         width = params[:width]

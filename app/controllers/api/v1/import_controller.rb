@@ -2,6 +2,8 @@
 module Api
   module V1
     class ImportController < ApplicationController
+      include Authenticable
+
       # POST /api/v1/import/media
       def media
         # ตรวจสอบว่ามีไฟล์หรือไม่

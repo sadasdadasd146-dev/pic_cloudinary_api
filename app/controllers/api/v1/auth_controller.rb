@@ -1,10 +1,14 @@
 module Api
   module V1
     class AuthController < ApplicationController
+      include Authenticable
       skip_before_action :authenticate_request, only: [:login]
 
       def login
         user = User.find_by(username: auth_params[:username])
+
+        Rails.logger.debug("User found: #{user.inspect}")
+        Rails.logger.debug("Password authenticate result: #{user&.authenticate(auth_params[:password])}")
 
         if user&.authenticate(auth_params[:password])
           token = encode_token(user.id)
