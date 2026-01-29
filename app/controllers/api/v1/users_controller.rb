@@ -73,6 +73,42 @@ module Api
         }
       end
 
+      # app/controllers/api/v1/users_controller.rb
+# app/controllers/api/v1/users_controller.rb
+    def with_assets
+      limit = params[:limit].to_i
+      limit = 10 if limit <= 0
+      limit = 100 if limit > 100   # กันดูดข้อมูลหนักเกิน
+
+      users = User
+        .joins(:assets)
+        .select(
+          "users.id,
+          users.username,
+          COUNT(assets.id) AS asset_count,
+          SUM(CASE WHEN assets.media_type = 'image' THEN 1 ELSE 0 END) AS image_count,
+          SUM(CASE WHEN assets.media_type = 'video' THEN 1 ELSE 0 END) AS video_count"
+        )
+        .group("users.id, users.username")
+        .order("asset_count DESC")
+        .limit(limit)
+
+      render json: {
+        success: true,
+        limit: limit,
+        data: users.map { |u|
+          {
+            id: u.id,
+            username: u.username,
+            asset_count: u.asset_count.to_i,
+            image_count: u.image_count.to_i,
+            video_count: u.video_count.to_i
+          }
+        }
+      }
+    end
+
+
       private
 
       def set_user

@@ -16,11 +16,18 @@ Rails.application.routes.draw do
       # Users ⭐⭐⭐
       resources :users, only: [:index, :show] do
         get 'assets', on: :member
+
+        collection do
+          get :with_assets
+        end
+
       end
 
       # Creators
       resources :creators, only: [:index, :show, :create, :update] do
         get 'assets', on: :member
+
+
       end
 
       # Assets
