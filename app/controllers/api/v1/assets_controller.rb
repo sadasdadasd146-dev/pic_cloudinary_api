@@ -5,6 +5,11 @@ module Api
       include Authenticable
       before_action :authenticate_request
 
+
+
+
+
+
       def index
         limit = params.fetch(:limit, 20).to_i
         page  = params.fetch(:page, 1).to_i
@@ -22,6 +27,15 @@ module Api
           assets = assets.where(media_type: params[:media_type])
         end
 
+        # 🔍 search
+        if params[:search].present?
+          keyword = "%#{params[:search]}%"
+          assets = assets.where(
+            "assets.title ILIKE :q OR assets.description ILIKE :q OR assets.author_name ILIKE :q",
+            q: keyword
+          )
+        end
+
         total = assets.count
 
         assets = assets
@@ -37,10 +51,18 @@ module Api
             limit: limit,
             total: total,
             total_pages: (total.to_f / limit).ceil,
-            media_type: params[:media_type]
+            media_type: params[:media_type],
+            search: params[:search]
           }
         }
       end
+
+
+
+
+
+
+
 
 
       def create
