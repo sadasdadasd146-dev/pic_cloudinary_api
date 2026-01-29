@@ -15,12 +15,19 @@ module Api
         sort  = params.fetch(:sort, 'created_at')
         order = params.fetch(:order, 'desc')
 
-        assets = Asset
+        assets = Asset.all
+
+        # 🔥 filter image / video
+        if params[:media_type].present?
+          assets = assets.where(media_type: params[:media_type])
+        end
+
+        total = assets.count
+
+        assets = assets
           .order("#{sort} #{order}")
           .limit(limit)
           .offset(offset)
-
-        total = Asset.count
 
         render json: {
           success: true,
@@ -29,10 +36,12 @@ module Api
             page: page,
             limit: limit,
             total: total,
-            total_pages: (total.to_f / limit).ceil
+            total_pages: (total.to_f / limit).ceil,
+            media_type: params[:media_type]
           }
         }
       end
+
 
       def create
         asset = Asset.new(asset_params)
