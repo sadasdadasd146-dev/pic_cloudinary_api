@@ -5,6 +5,7 @@ Rails.application.routes.draw do
 
       # Auth
       post 'login', to: 'auth#login'
+      get  'me',    to: 'auth#me'   # ⭐ user ที่ login อยู่
 
       # Admin
       namespace :admin do
@@ -12,15 +13,20 @@ Rails.application.routes.draw do
         get 'audit_logs', to: 'audit_logs#index'
       end
 
+      # Users ⭐⭐⭐
+      resources :users, only: [:index, :show] do
+        get 'assets', on: :member
+      end
+
       # Creators
       resources :creators, only: [:index, :show, :create, :update] do
         get 'assets', on: :member
       end
 
-      # Assets (แทน media เดิม)
+      # Assets
       resources :assets, only: [:index, :create, :destroy]
 
-      # Thumbnail / Resize proxy
+      # Resize
       get 'resize', to: 'resize#show'
 
       # Import

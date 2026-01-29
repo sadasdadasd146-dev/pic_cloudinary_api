@@ -6,17 +6,37 @@ module Api
       before_action :authenticate_request
 
       def index
-        assets = Asset.all
+        limit = params.fetch(:limit, 20).to_i
+        page  = params.fetch(:page, 1).to_i
+
+        limit = 100 if limit > 100
+        offset = (page - 1) * limit
+
+        sort  = params.fetch(:sort, 'created_at')
+        order = params.fetch(:order, 'desc')
+
+        assets = Asset
+          .order("#{sort} #{order}")
+          .limit(limit)
+          .offset(offset)
+
+        total = Asset.count
+
         render json: {
           success: true,
           data: assets,
-          total: assets.count
+          meta: {
+            page: page,
+            limit: limit,
+            total: total,
+            total_pages: (total.to_f / limit).ceil
+          }
         }
       end
 
       def create
         asset = Asset.new(asset_params)
-        
+
         if asset.save
           render json: {
             success: true,
@@ -32,30 +52,30 @@ module Api
       end
 
       def destroy
-        if @asset.destroy
-          render json: {
-            success: true,
-            message: 'Asset deleted successfully'
-          }
-        else
-          render json: {
-            success: false,
-            errors: @asset.errors
-          }, status: :unprocessable_entity
-        end
-      end
+        asset = Asset.find(params[:id])
 
-      private
-
-      def set_asset
-        @asset = Asset.find(params[:id])
+        asset.destroy
+        render json: {
+          success: true,
+          message: 'Asset deleted successfully'
+        }
       rescue ActiveRecord::RecordNotFound
         render json: { success: false, message: 'Asset not found' }, status: :not_found
       end
 
+      private
+
       def asset_params
-        params.require(:asset).permit(:creator_id, :url, :cloudinary_id, :title, :description)
+        params.require(:asset).permit(
+          :creator_id,
+          :url,
+          :cloudinary_id,
+          :title,
+          :description
+        )
       end
     end
   end
 end
+
+
