@@ -3,7 +3,7 @@ module Api
   module V1
     class UsersController < ApplicationController
       include Authenticable
-      before_action :set_user, only: [:show, :assets]
+      before_action :set_user, only: [:show, :assets, :media]
 
       # GET /api/v1/users
       def index
@@ -55,7 +55,7 @@ module Api
       # GET /api/v1/users/:id/assets
       def assets
         page  = params.fetch(:page, 1).to_i
-        limit = params.fetch(:limit, 20).to_i
+        limit = params.fetch(:limit, 200).to_i
         offset = (page - 1) * limit
 
         assets = @user.assets.order(created_at: :desc)
@@ -107,6 +107,33 @@ module Api
         }
       }
     end
+
+
+
+    # GET /api/v1/users/:id/media
+    def media
+      images = @user.assets.where(media_type: 'image').order(created_at: :desc)
+      videos = @user.assets.where(media_type: 'video').order(created_at: :desc)
+
+      render json: {
+        success: true,
+        user: {
+          id: @user.id,
+          username: @user.username
+        },
+        images: {
+          total: images.count,
+          items: images
+        },
+        videos: {
+          total: videos.count,
+          items: videos
+        }
+      }
+    end
+
+
+
 
 
       private

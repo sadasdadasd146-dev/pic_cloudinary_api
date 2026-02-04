@@ -15,13 +15,16 @@ Rails.application.routes.draw do
 
       # Users ⭐⭐⭐
       resources :users, only: [:index, :show] do
-        get 'assets', on: :member
-
-        collection do
-          get :with_assets
+        member do
+          get :assets      # /api/v1/users/:id/assets
+          get :media       # /api/v1/users/:id/media  🔥 แยกภาพ / วิดีโอ
         end
 
+        collection do
+          get :with_assets # /api/v1/users/with_assets 🔥 เรียงตาม asset มากสุด
+        end
       end
+
 
       # Creators
       resources :creators, only: [:index, :show, :create, :update] do
