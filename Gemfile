@@ -54,6 +54,7 @@ gem 'dhash-vips'
 
 # pagination
 gem 'kaminari'
+gem "phashion"
 
 # utils
 gem 'faker'
