@@ -28,12 +28,15 @@ class GeneratePhashJob < ApplicationJob
         IO.copy_stream(remote_file, tmp) # 🔥 stream ไม่กิน RAM
         tmp.rewind
 
-        hash = Phashion.image_hash(tmp.path)
+        # hash = Phashion.image_hash(tmp.path)
+        hash = DHashVips::IDHash.fingerprint(tmp.path)
+
 
         asset.update_columns(
           phash: hash.to_s(16),
           updated_at: Time.current
         )
+
       end
     end
 
