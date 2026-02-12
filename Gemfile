@@ -49,10 +49,17 @@ gem 'bcrypt'
 # สำหรับปรับขนาดภาพ
 gem 'mini_magick'
 
-# สำหรับ pagination (ถ้าต้องการ)
+# perceptual hash (ใช้แทน phashion)
+gem 'dhash-vips'
+
+# pagination
 gem 'kaminari'
 
+# utils
+gem 'faker'
 gem 'dotenv-rails', groups: [:development, :test]
+gem "solid_queue"
+
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -67,5 +74,6 @@ group :development, :test do
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
 end
-gem 'mini_magick'
-gem 'faker'
+
+
+

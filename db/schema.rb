@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_28_095811) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_12_093718) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -25,6 +25,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_28_095811) do
     t.string "file_type"
     t.integer "height"
     t.string "media_type"
+    t.string "phash"
     t.string "tags", default: [], array: true
     t.string "title"
     t.datetime "updated_at", null: false
@@ -35,6 +36,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_28_095811) do
     t.index ["cloudinary_id"], name: "index_assets_on_cloudinary_id"
     t.index ["created_at"], name: "index_assets_on_created_at"
     t.index ["creator_id"], name: "index_assets_on_creator_id"
+    t.index ["phash"], name: "index_assets_on_phash"
+    t.index ["user_id", "phash"], name: "index_assets_on_user_id_and_phash"
     t.index ["user_id", "url", "media_type"], name: "index_assets_unique_per_user_and_type", unique: true
     t.index ["user_id"], name: "index_assets_on_user_id"
   end
@@ -67,6 +70,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_28_095811) do
     t.index ["user_id"], name: "index_creators_on_user_id"
   end
 
+  create_table "job_del_pics", force: :cascade do |t|
+    t.bigint "asset_id", null: false
+    t.datetime "created_at", null: false
+    t.float "similarity"
+    t.datetime "updated_at", null: false
+    t.index ["asset_id"], name: "index_job_del_pics_on_asset_id", unique: true
+  end
+
   create_table "users", force: :cascade do |t|
     t.boolean "admin", default: false
     t.string "avatar"
@@ -87,4 +98,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_28_095811) do
   add_foreign_key "assets", "users"
   add_foreign_key "audit_logs", "users"
   add_foreign_key "creators", "users"
+  add_foreign_key "job_del_pics", "assets"
 end

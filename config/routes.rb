@@ -14,7 +14,7 @@ Rails.application.routes.draw do
       end
 
       # Users ⭐⭐⭐
-      resources :users, only: [:index, :show] do
+      resources :users, only: [:index, :show, :destroy] do
         member do
           get :assets      # /api/v1/users/:id/assets
           get :media       # /api/v1/users/:id/media  🔥 แยกภาพ / วิดีโอ
